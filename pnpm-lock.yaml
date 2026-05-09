@@ -18,8 +18,8 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0
       '@sentrodb/connector-helper-sql':
-        specifier: ^1.0.1
-        version: 1.0.1(@azure/core-client@1.10.1)(@types/node@22.15.17)
+        specifier: ^1.0.2
+        version: 1.0.2(@azure/core-client@1.10.1)(@types/node@22.15.17)
       '@sentrodb/connector-node-types':
         specifier: ^1.0.1
         version: 1.0.1
@@ -157,8 +157,8 @@ packages:
     resolution: {integrity: sha512-mNVu1nvkpSd8Q8gMebGbCkDWJ51ODetrFvLKYusej+V0ByD4btqHYnPIzTBLXnQMVUlm/oxVwqmWBY3zQfZilw==}
     engines: {node: '>= 18'}
 
-  '@sentrodb/connector-helper-sql@1.0.1':
-    resolution: {integrity: sha512-iFeS3p5JVpBf9D4VSRvFws8kTs5XwSQ/uGJI8fzxNVK9WOWgBcDQzxtHnHRUIb3jl94UUZVJ6Q8BcJJbV7E1SA==}
+  '@sentrodb/connector-helper-sql@1.0.2':
+    resolution: {integrity: sha512-Sz282N7zChjJVMCCq2VK4SuQQLXkvvEJoyVegDhFcvq7w1esEOBSQA6EP7tltlum+LGl4d1dGONeYSEmXSkejQ==}
 
   '@sentrodb/connector-node-types@1.0.1':
     resolution: {integrity: sha512-9hYrtUaAGXNGlpCzSkoRsRv+ym6SL3tbrCQVkchsLPOMW4RMs7ILRUFh64H3BaGk8sZMhSV3WysXXhj9uyf6vQ==}
@@ -1109,7 +1109,7 @@ snapshots:
       koa-compose: 4.1.0
       path-to-regexp: 6.3.0
 
-  '@sentrodb/connector-helper-sql@1.0.1(@azure/core-client@1.10.1)(@types/node@22.15.17)':
+  '@sentrodb/connector-helper-sql@1.0.2(@azure/core-client@1.10.1)(@types/node@22.15.17)':
     dependencies:
       '@sentrodb/connector-node-types': 1.0.1
       kysely: 0.28.17
@@ -1544,7 +1544,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
@@ -1553,7 +1553,7 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.4
-      debug: 4.4.1
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
