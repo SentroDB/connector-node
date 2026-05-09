@@ -1,0 +1,39 @@
+{
+  "name": "@sentrodb/connector-node",
+  "version": "1.0.0",
+  "description": "SentroDB Connector using Node",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --declaration",
+    "build:watch": "tsc --declaration --watch",
+    "clean": "rm -rf coverage dist node_modules",
+    "dev": "nodemon --exec ts-node src/test.ts"
+  },
+  "keywords": [],
+  "author": "Ahmad Alyousef <ahmad-alyousef@hotmail.com>",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@types/graceful-fs": "^4.1.9",
+    "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa-json": "^2.0.23",
+    "@types/koa__cors": "^5.0.0",
+    "@types/koa__router": "^12.0.4",
+    "@types/node": "^22.15.17",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@fastify/express": "^4.0.2",
+    "@koa/cors": "^5.0.0",
+    "@koa/router": "^13.1.0",
+    "axios": "^1.9.0",
+    "@sentrodb/connector-helper-sql": "^1.0.1",
+    "@sentrodb/connector-node-types": "^1.0.1",
+    "graceful-fs": "^4.2.11",
+    "http": "0.0.1-security",
+    "koa": "^3.0.0",
+    "koa-bodyparser": "^4.4.1",
+    "wretch": "^2.11.0"
+  }
+}
