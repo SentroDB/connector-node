@@ -21,7 +21,7 @@ type StoreShape = {
   >;
 };
 
-/** On-disk format for dbmanager-customizations.json */
+/** On-disk format for customizations.json */
 type FileShape = {
   customizations: DBManagerTypes.Customization<DBManagerSchema.TableName>[];
   webhooks: WebhookConfig[];
@@ -105,9 +105,9 @@ export class CustomizationStore {
         ServerMounter.instance.schemaDetails,
         {
           outDir: "../.admin",
-          fileName: "dbmanager-types.ts",
+          fileName: "types.ts",
           preferRequireMain: true,
-          banner: "Derived from schemaDetails + dbmanager-customizations.json",
+          banner: "Derived from schemaDetails + customizations.json",
           customizations: this.customizations,
           skipIfUnchanged: true,
         }
@@ -116,7 +116,7 @@ export class CustomizationStore {
         `Types ${result.written ? "written" : "up-to-date"}: ${result.filePath}`
       );
     } catch (e) {
-      console.error("Failed to generate dbmanager-types.ts:", e);
+      console.error("Failed to generate types.ts:", e);
     }
   }
 

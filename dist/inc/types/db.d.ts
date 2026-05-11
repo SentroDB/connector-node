@@ -1,5 +1,12 @@
 import DBManagerTypes, { SegmentCondition } from "@sentrodb/connector-node-types";
 import { DBConfig } from "./global";
+export type JunctionWriteSpec = {
+    junctionTable: string;
+    sourceColumn: string;
+    targetColumn: string;
+    parentSourceColumn: string;
+    targetIds: any[];
+};
 export interface DatabaseHandler {
     connect: ({ config }: {
         config: DBConfig;
@@ -24,14 +31,16 @@ export interface DatabaseHandler {
             [key: string]: string;
         };
     }) => Promise<any>;
-    update: ({ table, data, where }: {
+    update: ({ table, data, where, junctions }: {
         table: DBManagerSchema.TableName;
         data: DBManagerSchema.UpdateBy<DBManagerSchema.TableName>['patch'];
         where: DBManagerSchema.UpdateBy<DBManagerSchema.TableName>['where'];
+        junctions?: JunctionWriteSpec[];
     }) => Promise<any>;
-    insert: ({ table, data }: {
+    insert: ({ table, data, junctions }: {
         table: DBManagerSchema.TableName;
         data: DBManagerSchema.InsertBy<DBManagerSchema.TableName>;
+        junctions?: JunctionWriteSpec[];
     }) => Promise<any>;
     delete: ({ table, where, single }: {
         table: DBManagerSchema.TableName;
@@ -53,5 +62,11 @@ export interface DatabaseHandler {
         rows: any[];
         columns: string[];
     }>;
+    getRelatedIds: ({ junctionTable, sourceColumn, sourceValue, targetColumn }: {
+        junctionTable: string;
+        sourceColumn: string;
+        sourceValue: any;
+        targetColumn: string;
+    }) => Promise<any[]>;
 }
 //# sourceMappingURL=db.d.ts.map

@@ -11,6 +11,61 @@ import { ActionRegistry } from "../services/action-registry";
 import { WebhookEngine } from "../services/webhook-engine";
 import { ApprovalRequiredError } from "../services/approval-store";
 import { requireApproval, respondWithPending } from "../utils/approval-http";
+import type { JunctionWriteSpec } from "../types/db";
+
+/**
+ * Split a write payload into "real column" data and per-relation M2M target
+ * id arrays, using the table's synthetic many-to-many columns. Payload keys
+ * matching an `isMany` column are treated as M2M arrays; everything else
+ * passes through to the parent insert/update.
+ *
+ * The synthetic column has no underlying SQL column on the parent table, so
+ * we also need a real column to write the parent's PK from when fanning out
+ * junction rows. Prisma implicit M2M always references the parent's PK, so
+ * we use whatever PK column the parent table has.
+ */
+function splitM2MPayload(
+  table: DBManagerTypes.Table,
+  payload: Record<string, any>,
+): { data: Record<string, any>; junctions: JunctionWriteSpec[] } {
+  const m2mColumns = table.columns.filter((c) => c.isMany && c.junction && c.references);
+  if (!m2mColumns.length) {
+    return { data: payload, junctions: [] };
+  }
+
+  const pkColumn = table.columns.find((c) => c.primary_key)?.name;
+  if (!pkColumn) {
+    // No PK means we can't fan out — strip M2M keys and let the parent write proceed.
+    const data: Record<string, any> = {};
+    const m2mNames = new Set(m2mColumns.map((c) => c.name));
+    for (const [k, v] of Object.entries(payload)) if (!m2mNames.has(k)) data[k] = v;
+    return { data, junctions: [] };
+  }
+
+  const data: Record<string, any> = {};
+  const junctions: JunctionWriteSpec[] = [];
+  const consumed = new Set<string>();
+
+  for (const col of m2mColumns) {
+    const incoming = payload[col.name];
+    if (incoming === undefined) continue;
+    consumed.add(col.name);
+    if (!Array.isArray(incoming)) continue;
+    junctions.push({
+      junctionTable: col.junction!.table,
+      sourceColumn: col.junction!.sourceColumn,
+      targetColumn: col.junction!.targetColumn,
+      parentSourceColumn: pkColumn,
+      targetIds: incoming,
+    });
+  }
+
+  for (const [k, v] of Object.entries(payload)) {
+    if (!consumed.has(k)) data[k] = v;
+  }
+
+  return { data, junctions };
+}
 
 export abstract class BaseDynamicModelRoutes {
   public baseModelName: DBManagerSchema.TableName;
@@ -188,6 +243,28 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
       },
     });
 
+    if (!data || typeof data !== "object") return data;
+
+    const table = this.getSchemaTable();
+    const m2mColumns = table.columns.filter((c) => c.isMany && c.junction);
+    const pkColumn = table.columns.find((c) => c.primary_key)?.name;
+    if (!m2mColumns.length || !pkColumn) return data;
+
+    const pkValue = (data as Record<string, any>)[pkColumn];
+    if (pkValue === undefined || pkValue === null) return data;
+
+    await Promise.all(
+      m2mColumns.map(async (col) => {
+        const ids = await db.getRelatedIds({
+          junctionTable: col.junction!.table,
+          sourceColumn: col.junction!.sourceColumn,
+          sourceValue: pkValue,
+          targetColumn: col.junction!.targetColumn,
+        });
+        (data as Record<string, any>)[col.name] = ids;
+      }),
+    );
+
     return data;
   }
 
@@ -257,9 +334,12 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
 
+    const { data, junctions } = splitM2MPayload(this.getSchemaTable(), before as Record<string, any>);
+
     const rows = await db.insert({
       table: String(this.baseModelName),
-      data: before,
+      data: data as any,
+      junctions: junctions.length ? junctions : undefined,
     });
 
     const after = await this.hooks.runAfter(this.baseModelName, "CREATE", rows);
@@ -375,10 +455,17 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     const before = await this.hooks.runBefore(this.baseModelName, "UPDATE", body);
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
+
+    const { data, junctions } = splitM2MPayload(
+      this.getSchemaTable(),
+      (before.patch ?? {}) as Record<string, any>,
+    );
+
     const rows = await db.update({
       table: String(this.baseModelName),
-      data: before.patch,
-      where: before.where
+      data: data as any,
+      where: before.where,
+      junctions: junctions.length ? junctions : undefined,
     });
     const after = await this.hooks.runAfter(this.baseModelName, "UPDATE", rows);
 
@@ -387,6 +474,38 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
       .catch((err) => console.error("[Webhook] dispatch error:", err));
 
     return after;
+  }
+
+  public async getRelatedIds(ctx: Context) {
+    const body = (ctx.request.body ?? {}) as {
+      relationName?: string;
+      sourceValue?: any;
+    };
+    if (!body.relationName || body.sourceValue === undefined) {
+      ctx.status = 400;
+      return { error: "Missing relationName or sourceValue" };
+    }
+
+    const table = this.getSchemaTable();
+    const m2mColumn = table.columns.find(
+      (c) => c.name === body.relationName && c.isMany && !!c.junction,
+    );
+    if (!m2mColumn?.junction) {
+      ctx.status = 404;
+      return { error: `No many-to-many relation "${body.relationName}" on ${String(this.baseModelName)}` };
+    }
+
+    const db = ServerMounter.instance.databaseHandler;
+    if (!db) throw new Error("Database handler not initialized");
+
+    const ids = await db.getRelatedIds({
+      junctionTable: m2mColumn.junction.table,
+      sourceColumn: m2mColumn.junction.sourceColumn,
+      sourceValue: body.sourceValue,
+      targetColumn: m2mColumn.junction.targetColumn,
+    });
+
+    return { ids };
   }
 
   public async callTableAction(ctx: Context) {
@@ -489,6 +608,11 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
         path: this.getSubPath("update"),
         method: "post",
         callback: (ctx) => this.update(ctx),
+      },
+      {
+        path: this.getSubPath("getRelatedIds"),
+        method: "post",
+        callback: (ctx) => this.getRelatedIds(ctx),
       },
       {
         path: this.getSubPath("table-action"),

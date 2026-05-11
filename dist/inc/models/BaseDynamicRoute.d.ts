@@ -73,6 +73,13 @@ export declare class DynamicModelRoute extends BaseDynamicModelRoutes {
         policyId: string;
         status: string;
     } | DBManagerSchema.RowBy<TN>[]>;
+    getRelatedIds(ctx: Context): Promise<{
+        error: string;
+        ids?: undefined;
+    } | {
+        ids: any[];
+        error?: undefined;
+    }>;
     callTableAction(ctx: Context): Promise<{
         success: boolean;
         error?: undefined;

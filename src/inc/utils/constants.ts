@@ -5,7 +5,7 @@ export const EMPTY_SCHEMA_DETAILS: DBManagerTypes.SchemaDetails = {
 }
 
 export const ADMIN_DIR_NAME = ".admin";
-export const CUSTOMIZATIONS_FILE_NAME = `${ADMIN_DIR_NAME}/dbmanager-customizations.json`;
+export const CUSTOMIZATIONS_FILE_NAME = `${ADMIN_DIR_NAME}/customizations.json`;
 export const VIEWS_DIR_NAME = `${ADMIN_DIR_NAME}/views`;
 export const APPROVALS_FILE_NAME = `${ADMIN_DIR_NAME}/approvals.json`;
 

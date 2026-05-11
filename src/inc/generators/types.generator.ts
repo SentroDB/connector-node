@@ -13,14 +13,14 @@ import { ADMIN_DIR_NAME } from "../utils/constants";
 type GenOpts = {
   /** Defaults to writing one directory up from require.main.path (next to your JSON). */
   outDir?: string; // default: "../"
-  fileName?: string; // default: "dbmanager-types.ts"
+  fileName?: string; // default: "types.ts"
   preferRequireMain?: boolean; // default: true
   banner?: string; // optional header lines
   customizations?: Customization<DBManagerSchema.TableName>[]; // optional – to derive helpers (hidden tables, readonly cols)
   skipIfUnchanged?: boolean; // default: true
 };
 
-const DEFAULT_FILE_NAME = "dbmanager-types.ts";
+const DEFAULT_FILE_NAME = "types.ts";
 
 function emitAggregateMaps(tables: Table[]): string {
   const rows = tables
@@ -95,7 +95,7 @@ function generateGlobalTypes(outputDir: string, fileName: string): void {
 // AUTO-GENERATED — DO NOT EDIT.
 // This file binds the generated TableName to the global Schema namespace.
 
-import type * as T from "./${fileName?.replace(/\.ts$/, "") ?? "dbmanager-types"
+import type * as T from "./${fileName?.replace(/\.ts$/, "") ?? "types"
     }";
 
 declare global {
@@ -117,7 +117,7 @@ declare global {
 
 export {};
 `.trimStart();
-  const dtsFile = path.join(outputDir, "global-dbmanager.d.ts");
+  const dtsFile = path.join(outputDir, "global.d.ts");
   fs.writeFileSync(dtsFile, dts, "utf-8");
 }
 
@@ -194,11 +194,22 @@ function emitColumnsByTable(tables: Table[]): string {
   const body = tables
     .map((t) => {
       const cols =
-        t.columns.map((c) => JSON.stringify(c.name)).join(" | ") || "never";
+        dedupeColumns(t.columns).map((c) => JSON.stringify(c.name)).join(" | ") || "never";
       return `  ${safeProp(t.name)}: ${cols};`;
     })
     .join("\n");
   return `export type ColumnsByTable = {\n${body}\n};`;
+}
+
+function dedupeColumns(columns: Column[]): Column[] {
+  const seen = new Set<string>();
+  const out: Column[] = [];
+  for (const c of columns) {
+    if (seen.has(c.name)) continue;
+    seen.add(c.name);
+    out.push(c);
+  }
+  return out;
 }
 
 function emitEnumsFromColumns(tables: Table[]): string {

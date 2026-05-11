@@ -18,11 +18,11 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0
       '@sentrodb/connector-helper-sql':
-        specifier: ^1.0.2
-        version: 1.0.2(@azure/core-client@1.10.1)(@types/node@22.15.17)
+        specifier: file:../connector-helper-sql
+        version: file:../connector-helper-sql(@azure/core-client@1.10.1)(@types/node@22.15.17)
       '@sentrodb/connector-node-types':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: file:../connector-node-types
+        version: file:../connector-node-types
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -157,11 +157,11 @@ packages:
     resolution: {integrity: sha512-mNVu1nvkpSd8Q8gMebGbCkDWJ51ODetrFvLKYusej+V0ByD4btqHYnPIzTBLXnQMVUlm/oxVwqmWBY3zQfZilw==}
     engines: {node: '>= 18'}
 
-  '@sentrodb/connector-helper-sql@1.0.2':
-    resolution: {integrity: sha512-Sz282N7zChjJVMCCq2VK4SuQQLXkvvEJoyVegDhFcvq7w1esEOBSQA6EP7tltlum+LGl4d1dGONeYSEmXSkejQ==}
+  '@sentrodb/connector-helper-sql@file:../connector-helper-sql':
+    resolution: {directory: ../connector-helper-sql, type: directory}
 
-  '@sentrodb/connector-node-types@1.0.1':
-    resolution: {integrity: sha512-9hYrtUaAGXNGlpCzSkoRsRv+ym6SL3tbrCQVkchsLPOMW4RMs7ILRUFh64H3BaGk8sZMhSV3WysXXhj9uyf6vQ==}
+  '@sentrodb/connector-node-types@file:../connector-node-types':
+    resolution: {directory: ../connector-node-types, type: directory}
 
   '@types/accepts@1.3.7':
     resolution: {integrity: sha512-Pay9fq2lM2wXPWbteBsRAGiWH2hig4ZE2asK+mm7kUzlxRTfL961rj89I6zV/E3PcIkDqyuBEcMxFT7rccugeQ==}
@@ -1109,9 +1109,9 @@ snapshots:
       koa-compose: 4.1.0
       path-to-regexp: 6.3.0
 
-  '@sentrodb/connector-helper-sql@1.0.2(@azure/core-client@1.10.1)(@types/node@22.15.17)':
+  '@sentrodb/connector-helper-sql@file:../connector-helper-sql(@azure/core-client@1.10.1)(@types/node@22.15.17)':
     dependencies:
-      '@sentrodb/connector-node-types': 1.0.1
+      '@sentrodb/connector-node-types': file:../connector-node-types
       kysely: 0.28.17
       mysql2: 3.22.3(@types/node@22.15.17)
       pg: 8.20.0
@@ -1124,7 +1124,7 @@ snapshots:
       - pg-native
       - supports-color
 
-  '@sentrodb/connector-node-types@1.0.1': {}
+  '@sentrodb/connector-node-types@file:../connector-node-types': {}
 
   '@types/accepts@1.3.7':
     dependencies:

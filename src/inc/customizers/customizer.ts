@@ -90,7 +90,13 @@ export class Customizer {
         console.log("Reading:", filePath);
         const raw = fs.readFileSync(filePath, "utf-8");
         try {
-            return JSON.parse(raw) as DBManagerTypes.Customization<DBManagerSchema.TableName>[];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) {
+                fs.mkdirSync(path.dirname(filePath), { recursive: true });
+                fs.writeFileSync(filePath, JSON.stringify([], null, 2), "utf-8");
+                return [] as DBManagerTypes.Customization<DBManagerSchema.TableName>[];
+            }
+            return parsed as DBManagerTypes.Customization<DBManagerSchema.TableName>[];
         } catch (e) {
             console.error("❌ Failed to parse customizations.json", e);
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -110,15 +116,15 @@ export class Customizer {
         try {
             const result = generateDbManagerTypes(this.serverMounter.schemaDetails, {
                 outDir: "../.admin",
-                fileName: "dbmanager-types.ts",
+                fileName: "types.ts",
                 preferRequireMain: true,
-                banner: "Derived from schemaDetails + dbmanager-customizations.json",
+                banner: "Derived from schemaDetails + customizations.json",
                 customizations: this.customizations,
                 skipIfUnchanged: true,
             });
             console.log(`Types ${result.written ? "written" : "up-to-date"}: ${result.filePath}`);
         } catch (e) {
-            console.error("Failed to generate dbmanager-types.ts:", e);
+            console.error("Failed to generate types.ts:", e);
         }
     }
 
