@@ -1,5 +1,6 @@
 import cors from "@koa/cors";
 import Router from "@koa/router";
+import { timingSafeEqual } from "crypto";
 import bodyParser from "koa-bodyparser";
 import ServerMounter from "../core/serverMounter";
 import { Route } from "../types/global";
@@ -26,6 +27,7 @@ import type {
   CreateApprovalPolicyDto,
   UpdateApprovalPolicyDto,
 } from "../types/approval";
+import { requireJwtAuth } from "./requireJwtAuth";
 
 export class RouterManager {
   public router: Router;
@@ -38,6 +40,18 @@ export class RouterManager {
       "(.*)",
       cors({ credentials: true, maxAge: 24 * 3600, privateNetworkAccess: true })
     );
+    this.router.use(async (ctx, next) => {
+      if (ctx.path === "/validate" || ctx.path === "/health") {
+        return next();
+      }
+      const secret = this.serverMounter.config?.secretKey;
+      if (!secret) {
+        ctx.status = 503;
+        ctx.body = { error: "service_unavailable", reason: "no_secret_configured" };
+        return;
+      }
+      return requireJwtAuth(secret)(ctx, next);
+    });
   }
 
   addRoute(route: Route) {
@@ -162,7 +176,16 @@ export class RouterManager {
         method: "post",
         callback: (ctx) => {
           const { key } = ctx.request.body as { key: string };
-          return { isValid: key === this.serverMounter.config?.secretKey };
+          const expected = this.serverMounter.config?.secretKey;
+          if (typeof key !== "string" || !expected) {
+            return { isValid: false };
+          }
+          const keyBuf = Buffer.from(key);
+          const expectedBuf = Buffer.from(expected);
+          if (keyBuf.length !== expectedBuf.length) {
+            return { isValid: false };
+          }
+          return { isValid: timingSafeEqual(keyBuf, expectedBuf) };
         },
       },
       {

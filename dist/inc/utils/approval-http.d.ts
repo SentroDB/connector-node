@@ -1,13 +1,10 @@
 import type { Context } from "koa";
 import { ApprovalRequiredError } from "../services/approval-store";
 import type { ApprovalAction, ApprovalRequest, ApprovalRequester } from "../types/approval";
-export declare const USER_ID_HEADER = "x-user-id";
-export declare const USER_EMAIL_HEADER = "x-user-email";
-export declare const USER_ROLES_HEADER = "x-user-roles";
 /**
- * Extract identity from connector request headers. The admin backend proxy is
- * expected to attach these headers; falls back to anonymous when missing so
- * dev/local-only setups continue to work for non-gated actions.
+ * Extract identity from the verified JWT claims attached to ctx.state.auth by
+ * the requireJwtAuth middleware. Returns undefined for unauthenticated routes
+ * (validate / health) or during ApprovalContext replays.
  */
 export declare function extractRequester(ctx: Context): ApprovalRequester | undefined;
 /**

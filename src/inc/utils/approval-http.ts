@@ -4,41 +4,29 @@ import {
   ApprovalRequiredError,
   ApprovalStore,
 } from "../services/approval-store";
+import type { AuthClaims } from "../router/requireJwtAuth";
 import type {
   ApprovalAction,
   ApprovalRequest,
   ApprovalRequester,
 } from "../types/approval";
 
-export const USER_ID_HEADER = "x-user-id";
-export const USER_EMAIL_HEADER = "x-user-email";
-export const USER_ROLES_HEADER = "x-user-roles";
-
 /**
- * Extract identity from connector request headers. The admin backend proxy is
- * expected to attach these headers; falls back to anonymous when missing so
- * dev/local-only setups continue to work for non-gated actions.
+ * Extract identity from the verified JWT claims attached to ctx.state.auth by
+ * the requireJwtAuth middleware. Returns undefined for unauthenticated routes
+ * (validate / health) or during ApprovalContext replays.
  */
 export function extractRequester(ctx: Context): ApprovalRequester | undefined {
   const replayCtx = ApprovalContext.requester();
   if (replayCtx) return replayCtx;
 
-  const headers = ctx.request.headers ?? {};
-  const userId = readHeader(headers[USER_ID_HEADER]);
-  const email = readHeader(headers[USER_EMAIL_HEADER]);
-  if (!userId || !email) return undefined;
-  const rolesRaw = readHeader(headers[USER_ROLES_HEADER]) ?? "";
-  const roles = rolesRaw
-    .split(",")
-    .map((r) => r.trim())
-    .filter(Boolean);
-  return { userId, email, roles };
-}
-
-function readHeader(value: string | string[] | undefined): string | undefined {
-  if (!value) return undefined;
-  if (Array.isArray(value)) return value[0];
-  return value;
+  const auth = ctx.state.auth as AuthClaims | undefined;
+  if (!auth) return undefined;
+  return {
+    userId: auth.sub,
+    email: auth.email,
+    roles: auth.roles,
+  };
 }
 
 /**

@@ -18,11 +18,11 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0
       '@sentrodb/connector-helper-sql':
-        specifier: file:../connector-helper-sql
-        version: file:../connector-helper-sql(@azure/core-client@1.10.1)(@types/node@22.15.17)
+        specifier: ^1.0.3
+        version: 1.0.3(@azure/core-client@1.10.1)(@types/node@22.15.17)
       '@sentrodb/connector-node-types':
-        specifier: file:../connector-node-types
-        version: file:../connector-node-types
+        specifier: ^1.0.3
+        version: 1.0.3
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -32,6 +32,9 @@ importers:
       http:
         specifier: 0.0.1-security
         version: 0.0.1-security
+      jsonwebtoken:
+        specifier: ^9.0.3
+        version: 9.0.3
       koa:
         specifier: ^3.0.0
         version: 3.0.0
@@ -45,6 +48,9 @@ importers:
       '@types/graceful-fs':
         specifier: ^4.1.9
         version: 4.1.9
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
       '@types/koa':
         specifier: ^2.15.0
         version: 2.15.0
@@ -157,11 +163,11 @@ packages:
     resolution: {integrity: sha512-mNVu1nvkpSd8Q8gMebGbCkDWJ51ODetrFvLKYusej+V0ByD4btqHYnPIzTBLXnQMVUlm/oxVwqmWBY3zQfZilw==}
     engines: {node: '>= 18'}
 
-  '@sentrodb/connector-helper-sql@file:../connector-helper-sql':
-    resolution: {directory: ../connector-helper-sql, type: directory}
+  '@sentrodb/connector-helper-sql@1.0.3':
+    resolution: {integrity: sha512-DYkhPJEnNZsTMzaSyHnWZ0GCATr7vQWZNnzsN9YCaxM/H13CI36Wj+aiaZLgOepdXJwYAZh/g1kP1QXRTurafQ==}
 
-  '@sentrodb/connector-node-types@file:../connector-node-types':
-    resolution: {directory: ../connector-node-types, type: directory}
+  '@sentrodb/connector-node-types@1.0.3':
+    resolution: {integrity: sha512-lOEdHXXgSIdfn7K/lVt5UubdMh3UKaH/QSNegT5HiIoQiJquee6Ko+ocXfb4NHZpualGzGuNcMBx/R4JYiM+Xg==}
 
   '@types/accepts@1.3.7':
     resolution: {integrity: sha512-Pay9fq2lM2wXPWbteBsRAGiWH2hig4ZE2asK+mm7kUzlxRTfL961rj89I6zV/E3PcIkDqyuBEcMxFT7rccugeQ==}
@@ -193,6 +199,9 @@ packages:
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
 
+  '@types/jsonwebtoken@9.0.10':
+    resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+
   '@types/keygrip@1.0.6':
     resolution: {integrity: sha512-lZuNAY9xeJt7Bx4t4dx0rYCDqGPW8RXhQZK1td7d4H6E9zYbLoOtjBvfwdTKpsyxQI/2jv+armjX/RW+ZNpXOQ==}
 
@@ -216,6 +225,9 @@ packages:
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
+
+  '@types/ms@2.1.0':
+    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
   '@types/node@22.15.17':
     resolution: {integrity: sha512-wIX2aSZL5FE+MR0JlvF87BNVrtFWf6AE6rxSE9X7OwnVvoyCQjpzSRJ+M87se/4QCkCiebQAqrJ0y6fwIyi7nw==}
@@ -1109,9 +1121,9 @@ snapshots:
       koa-compose: 4.1.0
       path-to-regexp: 6.3.0
 
-  '@sentrodb/connector-helper-sql@file:../connector-helper-sql(@azure/core-client@1.10.1)(@types/node@22.15.17)':
+  '@sentrodb/connector-helper-sql@1.0.3(@azure/core-client@1.10.1)(@types/node@22.15.17)':
     dependencies:
-      '@sentrodb/connector-node-types': file:../connector-node-types
+      '@sentrodb/connector-node-types': 1.0.3
       kysely: 0.28.17
       mysql2: 3.22.3(@types/node@22.15.17)
       pg: 8.20.0
@@ -1124,7 +1136,7 @@ snapshots:
       - pg-native
       - supports-color
 
-  '@sentrodb/connector-node-types@file:../connector-node-types': {}
+  '@sentrodb/connector-node-types@1.0.3': {}
 
   '@types/accepts@1.3.7':
     dependencies:
@@ -1169,6 +1181,11 @@ snapshots:
 
   '@types/http-errors@2.0.4': {}
 
+  '@types/jsonwebtoken@9.0.10':
+    dependencies:
+      '@types/ms': 2.1.0
+      '@types/node': 22.15.17
+
   '@types/keygrip@1.0.6': {}
 
   '@types/koa-bodyparser@4.3.12':
@@ -1203,6 +1220,8 @@ snapshots:
       '@types/koa': 2.15.0
 
   '@types/mime@1.3.5': {}
+
+  '@types/ms@2.1.0': {}
 
   '@types/node@22.15.17':
     dependencies:
