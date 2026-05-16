@@ -15,12 +15,6 @@ export default class Connector {
      * @returns this for method chaining
      */
     use<T>(id: string, integration: T): this;
-    /**
-     * Retrieve a registered integration by ID
-     * @param id - The integration ID
-     * @returns The integration instance or undefined if not found
-     */
-    using<T>(id: string): T | undefined;
     start(): Promise<void>;
     setDatabaseHandler(databaseHandler: DatabaseHandler): Promise<void>;
     mountOnNestJs(app: any): void;

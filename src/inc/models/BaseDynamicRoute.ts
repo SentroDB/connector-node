@@ -137,8 +137,8 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
       (before as { segment?: string }).segment;
     const segment = segmentSlug
       ? CustomizationStore.instance
-          .getCustomization(this.baseModelName)
-          .customization.segments?.find((s) => s.slug === segmentSlug)
+        .getCustomization(this.baseModelName)
+        .customization.segments?.find((s) => s.slug === segmentSlug)
       : undefined;
     const segmentConditions = segment?.conditions ?? [];
     const adHocConditions = Array.isArray(
@@ -334,7 +334,7 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
 
-    const { data, junctions } = splitM2MPayload(this.getSchemaTable(), before as Record<string, any>);
+    const { data, junctions } = splitM2MPayload(this.getSchemaTable(), before);
 
     const rows = await db.insert({
       table: String(this.baseModelName),

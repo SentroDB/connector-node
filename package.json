@@ -1,6 +1,6 @@
 {
   "name": "@sentrodb/connector-node",
-  "version": "1.0.3",
+  "version": "1.0.4-beta",
   "description": "SentroDB Connector using Node",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,7 @@
     "@koa/cors": "^5.0.0",
     "@koa/router": "^13.1.0",
     "@sentrodb/connector-helper-sql": "^1.0.3",
-    "@sentrodb/connector-node-types": "^1.0.3",
+    "@sentrodb/connector-node-types": "^1.0.4-beta",
     "axios": "^1.9.0",
     "graceful-fs": "^4.2.11",
     "http": "0.0.1-security",

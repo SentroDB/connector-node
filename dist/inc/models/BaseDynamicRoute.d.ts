@@ -58,13 +58,13 @@ export declare class DynamicModelRoute extends BaseDynamicModelRoutes {
         requestId: string;
         policyId: string;
         status: string;
-    } | DBManagerSchema.RowBy<TN>[]>;
+    } | Record<string, unknown>[]>;
     delete(ctx: Context): Promise<{
         pending: true;
         requestId: string;
         policyId: string;
         status: string;
-    } | DBManagerSchema.RowBy<TN>[] | {
+    } | Record<string, unknown>[] | {
         error: string;
     }>;
     update(ctx: Context): Promise<{
@@ -72,7 +72,7 @@ export declare class DynamicModelRoute extends BaseDynamicModelRoutes {
         requestId: string;
         policyId: string;
         status: string;
-    } | DBManagerSchema.RowBy<TN>[]>;
+    } | Record<string, unknown>[]>;
     getRelatedIds(ctx: Context): Promise<{
         error: string;
         ids?: undefined;

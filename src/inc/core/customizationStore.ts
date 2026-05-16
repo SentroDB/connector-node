@@ -1,5 +1,5 @@
 import type { CustomTable, CustomColumn } from "@sentrodb/connector-node-types";
-import { ColumnName, RowOf } from "../types/modelCustomizer";
+import { ColumnName } from "../types/modelCustomizer";
 import DBManagerTypes from "@sentrodb/connector-node-types";
 import {
   CUSTOMIZATIONS_FILE_NAME,
@@ -15,10 +15,12 @@ import type { WebhookConfig } from "../types/webhook";
 
 type StoreShape = {
   tables: Record<DBManagerSchema.TableName, Partial<CustomTable>>;
-  columns: Record<
-    DBManagerSchema.TableName,
-    Record<ColumnName, Partial<CustomColumn>>
-  >;
+  columns: {
+    [T in DBManagerSchema.TableName]?: Record<
+      ColumnName<T>,
+      Partial<CustomColumn>
+    >;
+  };
 };
 
 /** On-disk format for customizations.json */
@@ -156,9 +158,9 @@ export class CustomizationStore {
     );
   }
 
-  public addColumnCustomization<K extends keyof RowOf<DBManagerSchema.TableName>>(
-    table: DBManagerSchema.TableName,
-    column: K,
+  public addColumnCustomization<T extends DBManagerSchema.TableName>(
+    table: T,
+    column: ColumnName<T>,
     customization: Partial<DBManagerTypes.CustomColumn>
   ) {
     const existingCustomization = this.customizations.find(

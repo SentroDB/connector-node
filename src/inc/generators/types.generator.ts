@@ -9,6 +9,7 @@ import type {
   Customization,
 } from "@sentrodb/connector-node-types";
 import { ADMIN_DIR_NAME } from "../utils/constants";
+import { findProjectRoot } from "../utils/file-handler";
 
 type GenOpts = {
   /** Defaults to writing one directory up from require.main.path (next to your JSON). */
@@ -57,17 +58,14 @@ export function generateDbManagerTypes(
   opts: GenOpts = {}
 ): { filePath: string; written: boolean } {
   const {
-    outDir = `../${ADMIN_DIR_NAME}`,
+    outDir = `${ADMIN_DIR_NAME}`,
     fileName = DEFAULT_FILE_NAME,
-    preferRequireMain = true,
     banner,
     customizations,
     skipIfUnchanged = true,
   } = opts;
 
-  const rootDir = path.resolve(
-    preferRequireMain && require?.main?.path ? require.main.path : process.cwd()
-  );
+  const rootDir = findProjectRoot();
   const outputDir = path.resolve(rootDir, outDir);
   fs.mkdirSync(outputDir, { recursive: true });
 
@@ -93,26 +91,22 @@ export function generateDbManagerTypes(
 function generateGlobalTypes(outputDir: string, fileName: string): void {
   const dts = `
 // AUTO-GENERATED — DO NOT EDIT.
-// This file binds the generated TableName to the global Schema namespace.
+// Augments the Registered* seams from @sentrodb/connector-node-types so
+// DBManagerSchema.TableName narrows to this project's tables. The seams live
+// in the package's global-schema-base.d.ts and merge via interface declaration.
 
 import type * as T from "./${fileName?.replace(/\.ts$/, "") ?? "types"
     }";
 
 declare global {
   namespace DBManagerSchema {
-    type TableName = T.TableName;
-    type ListBy<TN extends DBManagerSchema.TableName> = { rows: RowBy<TN>[]; total: number };
-    type RowBy<TN extends DBManagerSchema.TableName> = T.Row[TN];
-    type InsertBy<TN extends DBManagerSchema.TableName> = T.Insert[TN];
-    type UpdateBy<TN extends DBManagerSchema.TableName> = T.Update[TN];
-    type DeleteBy<TN extends DBManagerSchema.TableName> = {where: T.Delete[TN], single: boolean};
-    type PKBy<TN extends DBManagerSchema.TableName> = T.PK[TN];
+    interface RegisteredRows extends T.Row {}
+    interface RegisteredColumns extends T.Columns {}
+    interface RegisteredInserts extends T.Insert {}
+    interface RegisteredUpdates extends T.Update {}
+    interface RegisteredDeletes extends T.Delete {}
+    interface RegisteredPKs extends T.PK {}
   }
-
-  var DBManagerSchema: {
-    readonly tableNames: readonly DBManagerSchema.TableName[];
-    hasTable(name: string): boolean;
-  };
 }
 
 export {};
@@ -198,7 +192,7 @@ function emitColumnsByTable(tables: Table[]): string {
       return `  ${safeProp(t.name)}: ${cols};`;
     })
     .join("\n");
-  return `export type ColumnsByTable = {\n${body}\n};`;
+  return `export type Columns = {\n${body}\n};\n\nexport type ColumnsByTable = Columns;`;
 }
 
 function dedupeColumns(columns: Column[]): Column[] {

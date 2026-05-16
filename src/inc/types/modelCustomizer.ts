@@ -1,7 +1,8 @@
 import { GetDataBody } from "./global";
 
 // export type SchemaRuntime = typeof DBManagerSchema;
-export type ColumnName = string;
+export type ColumnName<T extends DBManagerSchema.TableName> =
+    DBManagerSchema.ColumnBy<T>;
 export type TableNameOf<S> =
     S extends { readonly tableNames: readonly (infer N)[] } ? Extract<N, string> : never;
 
@@ -46,6 +47,9 @@ export type AfterHook<
         void | ResultArrayByOp<T, O> | Promise<void | ResultArrayByOp<T, O>>;
 
 /** Field Writer (from your previous step) */
-export type FieldWriter<T extends DBManagerSchema.TableName, K extends string> =
+export type FieldWriter<
+    T extends DBManagerSchema.TableName,
+    K extends ColumnName<T>
+> =
     (value: unknown, ctx: BaseContext<T, "CREATE" | "UPDATE">) =>
         Promise<Record<string, unknown> | void> | (Record<string, unknown> | void);

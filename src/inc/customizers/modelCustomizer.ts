@@ -6,6 +6,7 @@ import type {
 } from "@sentrodb/connector-node-types";
 import { CustomizationStore } from "../core/customizationStore";
 import { ActionRegistry } from "../services/action-registry";
+import { IntegrationRegistry } from "../services/integration-registry";
 import { DatabaseHandler } from "../types/db";
 import type {
   AfterHook,
@@ -14,7 +15,7 @@ import type {
   FieldWriter,
   Operation,
   ResultArrayByOp,
-  RowOf,
+  ColumnName,
 } from "../types/modelCustomizer";
 import { randomId, slugify, toArray, uniqueSlug } from "../utils/helpers";
 
@@ -22,7 +23,7 @@ export class ModelCustomizer<T extends DBManagerSchema.TableName> {
   constructor(public readonly table: T) { }
 
   private writers = new Map<string, FieldWriter<T, any>>();
-  replaceFieldWriting<K extends string>(field: K, handler: FieldWriter<T, K>) {
+  replaceFieldWriting<K extends ColumnName<T>>(field: K, handler: FieldWriter<T, K>) {
     this.writers.set(field, handler as FieldWriter<T, any>);
     return this;
   }
@@ -117,7 +118,7 @@ export class ModelCustomizer<T extends DBManagerSchema.TableName> {
    * @param name - The new display name for the column
    * @returns this for method chaining
    */
-  renameColumn<K extends keyof RowOf<T>>(
+  renameColumn<K extends ColumnName<T>>(
     columnName: K,
     name: string
   ): this {
@@ -367,6 +368,35 @@ export class ModelCustomizer<T extends DBManagerSchema.TableName> {
     return [...(customization.customization.segments ?? [])].sort(
       (a, b) => a.order - b.order
     );
+  }
+
+  /* ----------------- Integrations ------------- */
+  private integrations = IntegrationRegistry.instance;
+
+  /**
+   * Retrieve a registered integration by ID
+   * @param id - The integration ID
+   * @returns The integration instance or undefined if not found
+   */
+  using<I>(id: string): I | undefined {
+    return this.integrations.get<I>(id);
+  }
+
+  /**
+   * Check if an integration is registered
+   * @param id - The integration ID
+   * @returns true if the integration exists, false otherwise
+   */
+  hasIntegration(id: string): boolean {
+    return this.integrations.has(id);
+  }
+
+  /**
+   * List all registered integration IDs
+   * @returns Array of all integration IDs
+   */
+  listIntegrations(): string[] {
+    return this.integrations.getAllIds();
   }
 }
 

@@ -40,9 +40,9 @@ export default class ServerMounter {
 
     // write types file
     generateDbManagerTypes(this.schemaDetails, {
-      outDir: "../.admin",
+      outDir: ".admin",
       fileName: "types.ts",
-      preferRequireMain: true,
+      preferRequireMain: false,
       banner: "Derived from schemaDetails",
       skipIfUnchanged: true,
     });

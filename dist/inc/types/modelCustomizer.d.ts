@@ -1,5 +1,5 @@
 import { GetDataBody } from "./global";
-export type ColumnName = string;
+export type ColumnName<T extends DBManagerSchema.TableName> = DBManagerSchema.ColumnBy<T>;
 export type TableNameOf<S> = S extends {
     readonly tableNames: readonly (infer N)[];
 } ? Extract<N, string> : never;
@@ -20,5 +20,5 @@ export type ResultArrayByOp<T extends DBManagerSchema.TableName, O extends Opera
 export type BeforeHook<T extends DBManagerSchema.TableName, O extends Operation> = (payload: PayloadByOp<T, O>, ctx: BaseContext<T, O>) => Promise<PayloadByOp<T, O> | void> | (PayloadByOp<T, O> | void);
 export type AfterHook<T extends DBManagerSchema.TableName, O extends Operation> = (result: ResultArrayByOp<T, O>, ctx: BaseContext<T, O>) => void | ResultArrayByOp<T, O> | Promise<void | ResultArrayByOp<T, O>>;
 /** Field Writer (from your previous step) */
-export type FieldWriter<T extends DBManagerSchema.TableName, K extends string> = (value: unknown, ctx: BaseContext<T, "CREATE" | "UPDATE">) => Promise<Record<string, unknown> | void> | (Record<string, unknown> | void);
+export type FieldWriter<T extends DBManagerSchema.TableName, K extends ColumnName<T>> = (value: unknown, ctx: BaseContext<T, "CREATE" | "UPDATE">) => Promise<Record<string, unknown> | void> | (Record<string, unknown> | void);
 //# sourceMappingURL=modelCustomizer.d.ts.map

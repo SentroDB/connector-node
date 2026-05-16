@@ -1,13 +1,13 @@
 import { Request } from "koa";
 import type { Segment, SegmentCondition, SegmentVisibility } from "@sentrodb/connector-node-types";
 import { DatabaseHandler } from "../types/db";
-import type { AfterHook, BaseContext, BeforeHook, FieldWriter, Operation, ResultArrayByOp, RowOf } from "../types/modelCustomizer";
+import type { AfterHook, BaseContext, BeforeHook, FieldWriter, Operation, ResultArrayByOp, ColumnName } from "../types/modelCustomizer";
 import { slugify } from "../utils/helpers";
 export declare class ModelCustomizer<T extends DBManagerSchema.TableName> {
     readonly table: T;
     constructor(table: T);
     private writers;
-    replaceFieldWriting<K extends string>(field: K, handler: FieldWriter<T, K>): this;
+    replaceFieldWriting<K extends ColumnName<T>>(field: K, handler: FieldWriter<T, K>): this;
     applyFieldWriters(payload: Record<string, unknown>, ctx: BaseContext<T, "CREATE" | "UPDATE">): Promise<Record<string, unknown>>;
     private before;
     private after;
@@ -28,7 +28,7 @@ export declare class ModelCustomizer<T extends DBManagerSchema.TableName> {
      * @param name - The new display name for the column
      * @returns this for method chaining
      */
-    renameColumn<K extends keyof RowOf<T>>(columnName: K, name: string): this;
+    renameColumn<K extends ColumnName<T>>(columnName: K, name: string): this;
     /**
      * Add a display field with a callback function
      * @param name - The name of the display field
@@ -90,6 +90,24 @@ export declare class ModelCustomizer<T extends DBManagerSchema.TableName> {
     reorderSegments(slugs: string[]): Segment[];
     getSegment(slug: string): Segment | undefined;
     listSegments(): Segment[];
+    private integrations;
+    /**
+     * Retrieve a registered integration by ID
+     * @param id - The integration ID
+     * @returns The integration instance or undefined if not found
+     */
+    using<I>(id: string): I | undefined;
+    /**
+     * Check if an integration is registered
+     * @param id - The integration ID
+     * @returns true if the integration exists, false otherwise
+     */
+    hasIntegration(id: string): boolean;
+    /**
+     * List all registered integration IDs
+     * @returns Array of all integration IDs
+     */
+    listIntegrations(): string[];
 }
 export { slugify };
 //# sourceMappingURL=modelCustomizer.d.ts.map

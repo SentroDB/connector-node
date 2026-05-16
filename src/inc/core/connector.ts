@@ -37,15 +37,6 @@ export default class Connector {
     return this;
   }
 
-  /**
-   * Retrieve a registered integration by ID
-   * @param id - The integration ID
-   * @returns The integration instance or undefined if not found
-   */
-  using<T>(id: string): T | undefined {
-    return this.integrations.get<T>(id);
-  }
-
   async start() {
     if (!this.serverMounter.config) {
       throw new Error("Config is not set");
