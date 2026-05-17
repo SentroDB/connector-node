@@ -1,6 +1,6 @@
 {
   "name": "@sentrodb/connector-node",
-  "version": "1.0.4-beta.2",
+  "version": "1.0.4",
   "description": "SentroDB Connector using Node",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
