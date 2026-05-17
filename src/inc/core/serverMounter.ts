@@ -134,10 +134,31 @@ export default class ServerMounter {
 
   public async startStandaloneServer({ port }: { port: number }) {
     const connectCallback = this.getConnectCallback();
-    const _server = createServer(connectCallback);
+    const mountPrefix = this.completeMountPrefix;
+    const _server = createServer((req, res) => {
+      const requestUrl = req.url ?? "/";
+
+      if (
+        requestUrl !== mountPrefix &&
+        !requestUrl.startsWith(`${mountPrefix}/`) &&
+        !requestUrl.startsWith(`${mountPrefix}?`)
+      ) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `DBManager is mounted at ${mountPrefix}` }));
+        return;
+      }
+
+      req.url = requestUrl.slice(mountPrefix.length) || "/";
+
+      if (req.url.startsWith("?")) {
+        req.url = `/${req.url}`;
+      }
+
+      connectCallback(req, res);
+    });
 
     _server.listen(port, () => {
-      console.log(`Server started on port ${port}`);
+      console.log(`Server started on port ${port} at ${mountPrefix}`);
     });
 
     _server.on('error', (err) => {

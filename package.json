@@ -1,14 +1,13 @@
 {
   "name": "@sentrodb/connector-node",
-  "version": "1.0.4-beta",
+  "version": "1.0.4-beta.2",
   "description": "SentroDB Connector using Node",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --declaration",
     "build:watch": "tsc --declaration --watch",
-    "clean": "rm -rf coverage dist node_modules",
-    "dev": "nodemon --exec ts-node src/test.ts"
+    "clean": "rm -rf dist node_modules"
   },
   "keywords": [],
   "author": "Ahmad Alyousef <ahmad-alyousef@hotmail.com>",

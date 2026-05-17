@@ -26,6 +26,7 @@ export const requireJwtAuth = (secretKey: string): Middleware => {
         algorithms: ["HS256"],
         clockTolerance: 5,
       });
+
       if (typeof decoded === "string") {
         ctx.status = 401;
         ctx.body = { error: "unauthorized", reason: "invalid" };

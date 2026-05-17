@@ -41,6 +41,7 @@ export class RouterManager {
       cors({ credentials: true, maxAge: 24 * 3600, privateNetworkAccess: true })
     );
     this.router.use(async (ctx, next) => {
+      console.log(ctx.path);
       if (ctx.path === "/validate" || ctx.path === "/health") {
         return next();
       }
