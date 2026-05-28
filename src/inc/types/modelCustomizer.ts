@@ -49,7 +49,7 @@ export type AfterHook<
 /** Field Writer (from your previous step) */
 export type FieldWriter<
     T extends DBManagerSchema.TableName,
-    K extends ColumnName<T>
+    K
 > =
-    (value: unknown, ctx: BaseContext<T, "CREATE" | "UPDATE">) =>
+    (value: K | unknown, ctx: BaseContext<T, "CREATE" | "UPDATE">) =>
         Promise<Record<string, unknown> | void> | (Record<string, unknown> | void);

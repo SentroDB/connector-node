@@ -330,11 +330,16 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     }
 
     const before = await this.hooks.runBefore(this.baseModelName, "CREATE", body);
+    const written = await this.hooks.applyFieldWriters(
+      this.baseModelName,
+      "CREATE",
+      before as Record<string, unknown>,
+    );
 
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
 
-    const { data, junctions } = splitM2MPayload(this.getSchemaTable(), before);
+    const { data, junctions } = splitM2MPayload(this.getSchemaTable(), written);
 
     const rows = await db.insert({
       table: String(this.baseModelName),
@@ -453,12 +458,17 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     }
 
     const before = await this.hooks.runBefore(this.baseModelName, "UPDATE", body);
+    const patch = await this.hooks.applyFieldWriters(
+      this.baseModelName,
+      "UPDATE",
+      (before.patch ?? {}) as Record<string, unknown>,
+    );
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
 
     const { data, junctions } = splitM2MPayload(
       this.getSchemaTable(),
-      (before.patch ?? {}) as Record<string, any>,
+      patch as Record<string, any>,
     );
 
     const rows = await db.update({

@@ -81,7 +81,12 @@ export class ApprovalExecutor {
     if (op === "CREATE") {
       const data = payload as Record<string, unknown>;
       const before = await hooks.runBefore(tableName, "CREATE", data as any);
-      const rows = await db.insert({ table, data: before as any });
+      const written = await hooks.applyFieldWriters(
+        tableName,
+        "CREATE",
+        before as Record<string, unknown>
+      );
+      const rows = await db.insert({ table, data: written as any });
       const after = await hooks.runAfter(tableName, "CREATE", rows as any);
       WebhookEngine.instance.dispatch("CREATE", table, after).catch(() => {});
       return;
@@ -93,9 +98,14 @@ export class ApprovalExecutor {
         patch: Record<string, unknown>;
       };
       const before = await hooks.runBefore(tableName, "UPDATE", body as any);
+      const patch = await hooks.applyFieldWriters(
+        tableName,
+        "UPDATE",
+        ((before as any).patch ?? {}) as Record<string, unknown>
+      );
       const rows = await db.update({
         table,
-        data: (before as any).patch,
+        data: patch,
         where: (before as any).where,
       });
       const after = await hooks.runAfter(tableName, "UPDATE", rows as any);
