@@ -5,6 +5,7 @@ export interface AuthClaims {
     roles: string[];
     pid: string;
     eid: string;
+    allowedIps?: string[];
     iat: number;
     exp: number;
 }

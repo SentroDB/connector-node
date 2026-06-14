@@ -1,12 +1,15 @@
 import type { Middleware } from "koa";
 import jwt from "jsonwebtoken";
 
+import { getRequestIp, isIpAllowed } from "../utils/request-ip";
+
 export interface AuthClaims {
   sub: string;
   email: string;
   roles: string[];
   pid: string;
   eid: string;
+  allowedIps?: string[];
   iat: number;
   exp: number;
 }
@@ -32,7 +35,18 @@ export const requireJwtAuth = (secretKey: string): Middleware => {
         ctx.body = { error: "unauthorized", reason: "invalid" };
         return;
       }
-      ctx.state.auth = decoded as AuthClaims;
+
+      const claims = decoded as AuthClaims;
+      if (
+        claims.allowedIps?.length &&
+        !isIpAllowed(getRequestIp(ctx.req), claims.allowedIps)
+      ) {
+        ctx.status = 403;
+        ctx.body = { error: "forbidden", reason: "ip_not_allowed" };
+        return;
+      }
+
+      ctx.state.auth = claims;
       await next();
     } catch (err) {
       const reason =
