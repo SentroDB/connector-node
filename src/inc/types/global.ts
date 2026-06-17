@@ -1,3 +1,4 @@
+import { DBConfig } from "@sentrodb/connector-node-types";
 import { IncomingMessage, ServerResponse } from "http";
 import { Context } from "koa";
 
@@ -6,16 +7,6 @@ export type ConnectorConfig = {
     authKey?: string;
     db: DBConfig;
     apiUrl?: string;
-}
-
-export type DBConfig = {
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    database: string;
-    schema?: string;
-    type: 'postgres' | 'mysql' | 'mssql';
 }
 
 export type HttpCallback = (req: IncomingMessage, res: ServerResponse) => void;

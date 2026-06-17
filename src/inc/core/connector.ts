@@ -70,6 +70,14 @@ export default class Connector {
     this.serverMounter.mountOnNestJs(app);
   }
 
+  mountOnExpress(app: any) {
+    this.serverMounter.mountOnExpress(app);
+  }
+
+  mountOnFastify(fastify: any) {
+    this.serverMounter.mountOnFastify(fastify);
+  }
+
   startStandaloneServer({ port }: { port: number }) {
     this.serverMounter.startStandaloneServer({ port });
   }

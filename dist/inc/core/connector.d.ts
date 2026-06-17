@@ -18,6 +18,8 @@ export default class Connector {
     start(): Promise<void>;
     setDatabaseHandler(databaseHandler: DatabaseHandler): Promise<void>;
     mountOnNestJs(app: any): void;
+    mountOnExpress(app: any): void;
+    mountOnFastify(fastify: any): void;
     startStandaloneServer({ port }: {
         port: number;
     }): void;

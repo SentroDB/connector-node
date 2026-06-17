@@ -1,5 +1,4 @@
-import DBManagerTypes, { SegmentCondition } from "@sentrodb/connector-node-types";
-import { DBConfig } from "./global";
+import DBManagerTypes, { DBConfig, SegmentCondition } from "@sentrodb/connector-node-types";
 export type JunctionWriteSpec = {
     junctionTable: string;
     sourceColumn: string;
