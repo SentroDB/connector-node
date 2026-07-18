@@ -67,6 +67,20 @@ function splitM2MPayload(
   return { data, junctions };
 }
 
+/**
+ * A write is only safe to run when it is scoped by at least one constraint.
+ * An update/delete with a missing or empty `where` targets the entire table,
+ * so we treat that as a client error rather than silently mutating every row.
+ */
+function hasWhereConstraints(where: unknown): where is Record<string, unknown> {
+  return (
+    !!where &&
+    typeof where === "object" &&
+    !Array.isArray(where) &&
+    Object.keys(where as Record<string, unknown>).length > 0
+  );
+}
+
 export abstract class BaseDynamicModelRoutes {
   public baseModelName: DBManagerSchema.TableName;
   public hooks = HookEngine.instance;
@@ -458,6 +472,15 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     }
 
     const before = await this.hooks.runBefore(this.baseModelName, "UPDATE", body);
+
+    if (!hasWhereConstraints(before.where)) {
+      ctx.status = 400;
+      return {
+        error:
+          "Refusing to update without a `where` clause — this would affect every row.",
+      };
+    }
+
     const patch = await this.hooks.applyFieldWriters(
       this.baseModelName,
       "UPDATE",

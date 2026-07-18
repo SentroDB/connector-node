@@ -72,7 +72,9 @@ export declare class DynamicModelRoute extends BaseDynamicModelRoutes {
         requestId: string;
         policyId: string;
         status: string;
-    } | Record<string, unknown>[]>;
+    } | Record<string, unknown>[] | {
+        error: string;
+    }>;
     getRelatedIds(ctx: Context): Promise<{
         error: string;
         ids?: undefined;
