@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc --declaration",
     "build:watch": "tsc --declaration --watch",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "test": "tsc -p tsconfig.test.json && node --test \".test-dist/test/**/*.test.js\""
   },
   "keywords": [],
   "author": "Ahmad Alyousef <ahmad-alyousef@hotmail.com>",

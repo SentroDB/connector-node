@@ -101,6 +101,8 @@ export declare class DynamicModelRoute extends BaseDynamicModelRoutes {
      * customization store. Returns undefined when no matching segment exists.
      */
     protected resolveSegmentIdFromQuery(ctx: Context): string | undefined;
+    /** Map client errors raised by the request guards to a 400 response. */
+    private guarded;
     getRoutes(): Route[];
 }
 //# sourceMappingURL=BaseDynamicRoute.d.ts.map

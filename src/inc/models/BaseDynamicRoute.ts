@@ -12,6 +12,15 @@ import { WebhookEngine } from "../services/webhook-engine";
 import { ApprovalRequiredError } from "../services/approval-store";
 import { requireApproval, respondWithPending } from "../utils/approval-http";
 import type { JunctionWriteSpec } from "../types/db";
+import {
+  assertKnownColumns,
+  assertValidConditions,
+  assertValidWhere,
+  buildPrimaryKeyWheres,
+  getPhysicalColumnNames,
+  RequestValidationError,
+} from "../utils/write-guards";
+import { deleteRecordsByPrimaryKey } from "../services/record-deleter";
 
 /**
  * Split a write payload into "real column" data and per-relation M2M target
@@ -186,6 +195,21 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
 
     // whitelist against known columns
     const columnNames = this.getColumnNames();
+    const schemaTable = this.getSchemaTable();
+
+    assertValidWhere(schemaTable, where, "read", { required: false });
+    assertValidConditions(schemaTable, combinedConditions);
+    if (before.columns !== undefined && before.columns !== null) {
+      if (!Array.isArray(before.columns)) {
+        throw new RequestValidationError("`columns` must be an array.");
+      }
+      assertKnownColumns(
+        schemaTable,
+        before.columns,
+        "columns",
+        getPhysicalColumnNames(schemaTable),
+      );
+    }
 
     if (!orderBy || !columnNames.has(orderBy)) {
       orderBy = undefined as any; // pass undefined to disable ordering
@@ -331,6 +355,10 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
   public async insert(ctx: Context) {
     const body = (ctx.request.body ?? {}) as DBManagerSchema.InsertBy<typeof this.baseModelName>;
 
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new RequestValidationError("Insert payload must be an object.");
+    }
+
     try {
       requireApproval(ctx, {
         kind: "CRUD",
@@ -352,6 +380,8 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
 
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
+
+    assertKnownColumns(this.getSchemaTable(), Object.keys(written), "insert payload");
 
     const { data, junctions } = splitM2MPayload(this.getSchemaTable(), written);
 
@@ -379,6 +409,9 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
       return { error: "No records provided" };
     }
 
+    // Reject unkeyed / key-less requests before they can be queued or run.
+    buildPrimaryKeyWheres(this.getSchemaTable(), records);
+
     try {
       requireApproval(ctx, {
         kind: "CRUD",
@@ -397,55 +430,10 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
       records
     )) as Array<Record<string, any>>;
 
-    const table = this.getSchemaTable();
-    const primaryColumns = (table.columns as any[])
-      .filter((c) => c.primary_key)
-      .map((c) => c.name);
-    const columnNames = this.getColumnNames();
-
-    const keyed: Array<Record<string, any>> = [];
-    const unkeyed: Array<Record<string, any>> = [];
-
-    for (const record of before) {
-      const hasAllPks =
-        primaryColumns.length > 0 &&
-        primaryColumns.every(
-          (col) => record?.[col] !== undefined
-        );
-      if (hasAllPks) keyed.push(record);
-      else unkeyed.push(record);
-    }
-
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
 
-    if (keyed.length) {
-      const where: Record<string, any[]> = {};
-      for (const col of primaryColumns) {
-        where[col] = keyed.map((r) => r[col]);
-      }
-      await db.delete({
-        table: String(this.baseModelName),
-        where,
-        single: false,
-      });
-    }
-
-    for (const record of unkeyed) {
-      const where: Record<string, any[]> = {};
-      for (const [col, val] of Object.entries(record)) {
-        if (val === undefined || val === null) continue;
-        if (!columnNames.has(col)) continue;
-        if (typeof val === "object") continue;
-        where[col] = [val];
-      }
-      if (!Object.keys(where).length) continue;
-      await db.delete({
-        table: String(this.baseModelName),
-        where,
-        single: false,
-      });
-    }
+    await deleteRecordsByPrimaryKey(db, this.getSchemaTable(), before);
 
     const after = await this.hooks.runAfter(this.baseModelName, "DELETE", records);
 
@@ -480,6 +468,9 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
           "Refusing to update without a `where` clause — this would affect every row.",
       };
     }
+    assertValidWhere(this.getSchemaTable(), before.where, "update", {
+      required: true,
+    });
 
     const patch = await this.hooks.applyFieldWriters(
       this.baseModelName,
@@ -488,6 +479,12 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     );
     const db = ServerMounter.instance.databaseHandler;
     if (!db) throw new Error("Database handler not initialized");
+
+    assertKnownColumns(
+      this.getSchemaTable(),
+      Object.keys(patch as Record<string, any>),
+      "update payload",
+    );
 
     const { data, junctions } = splitM2MPayload(
       this.getSchemaTable(),
@@ -600,8 +597,26 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
     return customization.customization.segments?.find((s) => s.slug === slug)?.id;
   }
 
+  /** Map client errors raised by the request guards to a 400 response. */
+  private guarded(routes: Route[]): Route[] {
+    return routes.map((route) => ({
+      ...route,
+      callback: async (ctx: Context) => {
+        try {
+          return await route.callback(ctx);
+        } catch (e) {
+          if (e instanceof RequestValidationError) {
+            ctx.status = e.status;
+            return { error: e.message };
+          }
+          throw e;
+        }
+      },
+    }));
+  }
+
   public getRoutes(): Route[] {
-    return [
+    return this.guarded([
       {
         path: this.getSubPath("getColumns"),
         method: "get",
@@ -657,6 +672,6 @@ export class DynamicModelRoute extends BaseDynamicModelRoutes {
         method: "post",
         callback: (ctx) => this.callRecordAction(ctx),
       }
-    ];
+    ]);
   }
 }

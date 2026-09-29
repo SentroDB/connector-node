@@ -8,6 +8,7 @@ import type {
   CrudOp,
 } from "../types/approval";
 import { HookEngine } from "./hook-engine";
+import { deleteRecordsByPrimaryKey } from "./record-deleter";
 
 /**
  * Replays an APPROVED request using the original requester identity.
@@ -124,44 +125,12 @@ export class ApprovalExecutor {
         records as any
       )) as Array<Record<string, any>>;
 
-      const schema = ServerMounter.instance.schemaDetails;
-      const tableMeta = schema.tables.find((t) => t.name === table);
-      const primaryColumns = (tableMeta?.columns ?? [])
-        .filter((c: any) => c.primary_key)
-        .map((c: any) => c.name);
-      const columnNames = new Set(
-        (tableMeta?.columns ?? []).map((c: any) => c.name)
+      const tableMeta = ServerMounter.instance.schemaDetails.tables.find(
+        (t) => t.name === table
       );
+      if (!tableMeta) throw new Error("Table not found in schema: " + table);
 
-      const keyed: Array<Record<string, any>> = [];
-      const unkeyed: Array<Record<string, any>> = [];
-      for (const record of before) {
-        const hasAllPks =
-          primaryColumns.length > 0 &&
-          primaryColumns.every((col: string) => record?.[col] !== undefined);
-        if (hasAllPks) keyed.push(record);
-        else unkeyed.push(record);
-      }
-
-      if (keyed.length) {
-        const where: Record<string, any[]> = {};
-        for (const col of primaryColumns) {
-          where[col] = keyed.map((r) => r[col]);
-        }
-        await db.delete({ table, where, single: false });
-      }
-
-      for (const record of unkeyed) {
-        const where: Record<string, any[]> = {};
-        for (const [col, val] of Object.entries(record)) {
-          if (val === undefined || val === null) continue;
-          if (!columnNames.has(col)) continue;
-          if (typeof val === "object") continue;
-          where[col] = [val];
-        }
-        if (!Object.keys(where).length) continue;
-        await db.delete({ table, where, single: false });
-      }
+      await deleteRecordsByPrimaryKey(db, tableMeta, before);
 
       const after = await hooks.runAfter(
         tableName,

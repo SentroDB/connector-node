@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./.test-dist",
+    "declaration": false,
+    "declarationMap": false,
+    "types": ["@sentrodb/connector-node-types", "node"]
+  },
+  "include": ["src/inc/utils/write-guards.ts", "src/inc/services/record-deleter.ts", "src/inc/types/db.ts", "test/**/*"]
+}
