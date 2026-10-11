@@ -233,13 +233,25 @@ export class RouterManager {
               }
             }
 
+            // Identifier quoting differs per dialect: Postgres uses "name",
+            // MySQL uses `name`, and MSSQL uses [name].
+            const dbType = this.serverMounter.config?.db?.type ?? "postgres";
+            const quoteIdentifier = (name: string) => {
+              if (dbType === "mysql") return `\`${name}\``;
+              if (dbType === "mssql") return `[${name}]`;
+              return `"${name}"`;
+            };
+
             let processedQuery = query;
             for (const name of identifiers) {
               const regex = new RegExp(
-                `["'\`]?\\b${name}\\b["'\`]?`,
+                `[\\["'\`]?\\b${name}\\b[\\]"'\`]?`,
                 "g"
               );
-              processedQuery = processedQuery.replace(regex, `"${name}"`);
+              processedQuery = processedQuery.replace(
+                regex,
+                quoteIdentifier(name)
+              );
             }
 
             const result = await dbHandler.query({
